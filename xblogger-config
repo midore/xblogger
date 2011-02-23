@@ -1,0 +1,38 @@
+module Bblogger
+
+  module Config
+
+    def data_dir
+     '/path/to/your/data-directory/'
+    end
+
+    #--------
+    # BlogID is result of run this.
+    # $ ruby mblogger/bin/get-blogin.rb
+    # =>
+    # your blog title, url.
+    # your BlogID
+    #--------
+    def xid
+      'your BlogID'
+    end
+
+    def ac
+      'your account'
+    end
+
+    def pw
+      'your password'
+    end
+
+    def xname
+      'yourappname'
+    end
+
+  end
+
+end
+
+$BBLOGGER = Bblogger::Config
+
+
