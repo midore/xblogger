@@ -2,4 +2,67 @@
  gdata 1.1.1
  <http://code.google.com/p/gdata-ruby-util/downloads/list>
 
+== Usage
+ # get your BlogID
+ $ cd xblogger/bin
+ $ ruby get-blogid.rb XXXXXXX # yourr profileID
+ # =>
+ BlogTitle=> your blog title
+ BlogURL=> http://xxxxxxx.blogspot.com/
+ BlogID => xxxxxxxxx
+
+After edit files "xblogger-config" and "bin/run.rb"
+$ chmod +x xblogger/bin/run.rb
+
+[help]
+$ ./run.rb --h
+
+[get entries(include draft entry) in current month]
+$ ./run.rb --get
+
+[get entries]
+$ ./run.rb --get 2010-01
+
+[print xml]
+$ ./run.rb --doc draft.txt
+
+[post entry]
+$ ./run.rb --post draft.txt
+# if "--control" is "yes" => post entry as draft.
+# if "--control" is't "yes" => post entry as public.
+# "post entry" request save a file 'draft.txt' in /your-data-dir/2011-XX/ as posted data.
+
+[update entry]
+$ ./run.rb --update /your-data-dir/2011-XX/xxxxx.txt
+
+[delete entry]
+$ ./run.rb --del '12345678900' # Edit ID
+$ ./run.rb --delete /your-data-directory/2011-XX/xxxxx.txt
+
+[TextFile]
+$ cat draft.txt
+--control
+yes
+--category
+test,blogger,music
+--title
+TestTitle
+--content
+test post.
+second line.
+link line <a href='http://github.com'>github.com</a> ...
+<blockquote>
+court and spark
+</blockquote>
+<pre>
+def hello
+  puts "ruby is fun\n"
+end
+</pre>
+last line.
+
+
+== Licence
+ Copyright (C) 2011 midore
+ xblogger is licensed under the GPLv2
 
