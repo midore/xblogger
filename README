@@ -3,9 +3,9 @@
  <http://code.google.com/p/gdata-ruby-util/downloads/list>
 
 == Usage
- # get your BlogID
+ # get the your BlogID
  $ cd xblogger/bin
- $ ruby get-blogid.rb XXXXXXX # yourr profileID
+ $ ruby get-blogid.rb XXXXXXX # XXXXXXX is your profileID
  # =>
  BlogTitle=> your blog title
  BlogURL=> http://xxxxxxx.blogspot.com/
