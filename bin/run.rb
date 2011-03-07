@@ -42,11 +42,12 @@ module Bblogger
       end
       Xblog.new(arg_h).base
     end
+
     private :own_dir
+
   end
 
 end
 
 Bblogger::Start.new.run
-
 
