@@ -65,6 +65,7 @@ module Bblogger
     def g_save(rh)
       h = @t_head.merge(rh)
       h[:content] = @t_body
+      h[:control] = 'posted' if h[:control].nil?
       SaveText.new(h).base
     end
 
