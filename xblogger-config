@@ -7,8 +7,9 @@ module Bblogger
     end
 
     #--------
-    # BlogID is result of run this.
-    # $ ruby mblogger/bin/get-blogin.rb
+    # Get the your BlogID.
+    # $ cd xblogger/bin
+    # $ ruby get-blogid.rb
     # =>
     # your blog title, url.
     # your BlogID
@@ -34,5 +35,4 @@ module Bblogger
 end
 
 $BBLOGGER = Bblogger::Config
-
 
