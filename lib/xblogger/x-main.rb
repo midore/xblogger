@@ -122,7 +122,9 @@ module Bblogger
     def xpost(data)
       str = "Error: path to data directory. LOOK! /path/to/xblogger-config\n"
       return print str unless d = dir_check
+      # test
       rh = request_post(data)
+      # rh = {:edit_id=>'1234567890', :published=>'2011-01-01T00:00:00.001+09:00', :updated=>"2011-01-02T11:20:37.229+09:00", :url=>'bbbbbb'}
       rh[:dir] = d
       return rh
     end
@@ -198,16 +200,20 @@ module Bblogger
     end
 
     def res_to_getreq(r)
-      print "# Response Get Request --\n"
+      print "# Response Get Request\n"
       r.to_xml.elements.each('entry'){|x|
         h, @xr = {}, x
-        link = ''
+        link, cate = '', ''
         res_sub(h)
         x.get_elements('link').select{|y| link = y.attributes['href'] if y.attributes['rel'] == 'alternate' }
+        # <category term='Blogger' scheme='http://www.blogger.com/atom/ns#'/>
+        x.get_elements('category').select{|y| cate = y.attributes['term'] }
         h[:url] = link
+        h[:category] = cate
         print "#", "-"*5, "\n"
         print_hash(h)
       }
+      print "--\n"
     end
 
     def res_to_h(res)
@@ -374,7 +380,4 @@ module Bblogger
 
   # end of module
 end
-
-# test
-# rh = {:edit_id=>'1234567890', :published=>'2011-01-01T00:00:00.001+09:00', :updated=>"2011-01-02T11:20:37.229+09:00", :url=>'bbbbbb'}
 
