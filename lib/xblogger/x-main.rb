@@ -65,7 +65,7 @@ module Bblogger
     def g_save(rh)
       h = @t_head.merge(rh)
       h[:content] = @t_body
-      h[:control] = 'posted' if h[:control].nil?
+      # h[:control] = 'posted' if h[:control].nil?
       SaveText.new(h).base
     end
 
@@ -123,9 +123,7 @@ module Bblogger
     def xpost(data)
       str = "Error: path to data directory. LOOK! /path/to/xblogger-config\n"
       return print str unless d = dir_check
-      # test
       rh = request_post(data)
-      # rh = {:edit_id=>'1234567890', :published=>'2011-01-01T00:00:00.001+09:00', :updated=>"2011-01-02T11:20:37.229+09:00", :url=>'bbbbbb'}
       rh[:dir] = d
       return rh
     end
@@ -223,15 +221,17 @@ module Bblogger
       h = Hash.new
       @xr = res.to_xml.root
       res_sub(h)
-      h[:url] = get_link if get_link
       print_hash(h)
       return h unless h.empty?
     end
 
     def res_sub(h)
-      [:title, :published, :updated].each{|s| h[s] = get_xstr(s.to_s)}
       h[:edit_id] = get_editid
-      h[:control] = get_xstr('app:control/app:draft')
+      [:published, :updated].each{|s| h[s] = get_xstr(s.to_s)}
+      h[:url] = get_link if get_link
+      ## When post the public entry, :control of response is nil.
+      ## dont use h[:control]
+      ## h[:control] = get_xstr('app:control/app:draft')
     end
 
     def print_hash(h)
