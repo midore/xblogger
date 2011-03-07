@@ -1,0 +1,19 @@
+--control
+yes
+--category
+test,blogger
+--title
+TestTitle
+--content
+test post.
+second line.
+link line <a href='http://github.com'>github.com</a> ... 
+<blockquote>
+court and spark
+</blockquote>
+<pre>
+def hello
+  puts "ruby is fun\n"
+end
+</pre>
+last line.
