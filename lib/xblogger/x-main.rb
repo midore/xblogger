@@ -202,14 +202,14 @@ module Bblogger
       print "# Response Get Request\n"
       r.to_xml.elements.each('entry'){|x|
         h, @xr = {}, x
-        link, cate = '', ''
-        res_sub(h)
-        x.get_elements('link').select{|y| link = y.attributes['href'] if y.attributes['rel'] == 'alternate' }
-        # <category term='Blogger' scheme='http://www.blogger.com/atom/ns#'/>
-        x.get_elements('category').select{|y| cate = y.attributes['term'] }
-        h[:url] = link
-        h[:category] = cate
-        print "#", "-"*5, "\n"
+        #--------------------------
+        h[:edit_id] = get_editid
+        h[:url] = get_link
+        [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
+        h[:control] = get_xstr('app:control/app:draft')
+        h[:category] = get_category
+        #--------------------------
+        print "# ", "-"*5, "\n"
         print_hash(h)
       }
       print "--\n"
@@ -259,6 +259,14 @@ module Bblogger
        }
       return nil if link.empty?
       return link
+    end
+
+    def get_category
+      ## <category term='Blogger' scheme='http://www.blogger.com/atom/ns#'/>
+      cate = []
+      @xr.get_elements('category').select{|y| cate.push(y.attributes['term'])}
+      return nil if cate.empty?
+      return cate.join(',').to_s
     end
 
     def range_t(t)
