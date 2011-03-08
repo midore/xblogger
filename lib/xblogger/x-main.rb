@@ -193,8 +193,10 @@ module Bblogger
       return a
       rescue GData::Client::AuthorizationError
         print "ERROR: Blogger Login Error. LOOK! /path/to/xblogger-config\n"
+        exit
       rescue => err
         print "ERROR: #{err.class}\n"
+        exit
       end
     end
 
@@ -279,16 +281,15 @@ module Bblogger
     end
 
     def set_time(t)
-      unless t.nil?
-        m = /(\d{4}).(\d{2})/.match(t)
-        t = m[1] + "/" + m[2] if m
-      else
-        t = Time.now.strftime("%Y/%m")
+      tt = Time.now.strftime("%Y/%m") unless t
+      unless tt
+        m = /^(\d{4})\-(\d{2})$/.match(t)
+        tt = m[1] + "/" + m[2] if m
       end
       begin
-        t = Time.parse(t)
-      rescue ArgumentError
-        return print "Error: Time parse error. example: 2010-01.\n"
+        tt = Time.parse(tt)
+      rescue #ArgumentError
+      return print "Error: Time parse error. example: 2010-01.\n"
       end
     end
 
