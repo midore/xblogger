@@ -29,7 +29,6 @@ module Bblogger
         # ---
       #rescue# => err
       #end
-
     end
 
     private
@@ -66,6 +65,7 @@ module Bblogger
       h = @t_head.merge(rh)
       h[:content] = @t_body
       # h[:control] = 'posted' if h[:control].nil?
+      p h
       SaveText.new(h).base
     end
 
@@ -106,7 +106,11 @@ module Bblogger
     include $BBLOGGER
     def initialize(eid=nil)
       @eid = eid
-      @xurl = "http://www.blogger.com/feeds/#{xid}/posts/default"
+      # See
+      # Blogger Developers Network: Clarifying recent changes to Blogger’s feed access
+      # http://code.blogger.com/2011/06/clarifying-recent-changes-to-bloggers.html
+      # @xurl: http => https
+      @xurl = "https://www.blogger.com/feeds/#{xid}/posts/default"
     end
 
     def xget(x)
@@ -124,6 +128,7 @@ module Bblogger
       str = "Error: path to data directory. LOOK! /path/to/xblogger-config\n"
       return print str unless d = dir_check
       rh = request_post(data)
+      return nil unless rh
       rh[:dir] = d
       return rh
     end
@@ -154,7 +159,7 @@ module Bblogger
     end
 
     def request_post(data)
-      r = clbase.post(@xurl, data.to_s)
+      p r = clbase.post(@xurl, data)
       code_msg(r, 'post')
     end
 
