@@ -154,8 +154,11 @@ module Bblogger
       return nil if line =~ /<[a|\/a]>/
       all = /<a\shref=["'](.*?)["']>(.*?)<\/a>/.match(line)
       http = /http.?:\/\//.match(all[1]) if all
-      (print "MISSED LINK TAG...#{line}\n"; raise) if (all[2].nil? or http.nil?) 
-      @ep.add_element("a",{'href'=>all[1]}).add_text(all[2])
+      (print "MISSED LINK TAG...#{line}\n"; raise) if (all[2].nil? or http.nil?)
+      u = URI.escape(all[1])
+      a = @ep.add_element("a")
+      a.add_attribute("href", u)
+      a.add_text(all[2])
     end
 
     def tag_del(line)
