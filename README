@@ -1,15 +1,11 @@
 == Dependency
- gdata 1.1.1
+ gdata 
  <http://code.google.com/p/gdata-ruby-util/downloads/list>
 
 == Usage
- # get the your BlogID
- $ cd xblogger/bin
- $ ruby get-blogid.rb XXXXXXX # XXXXXXX is your profileID
- # =>
- BlogTitle=> your blog title
- BlogURL=> http://xxxxxxx.blogspot.com/
- BlogID => xxxxxxxxx
+ # Your BlogID
+ # See: Developer's Guide: Protocol - Blogger APIs - Google Code
+ # http://code.google.com/intl/ja/apis/blogger/docs/2.0/developers_guide_protocol.html
 
 After edit files "xblogger-config" and "bin/run.rb"
 $ chmod +x xblogger/bin/run.rb
