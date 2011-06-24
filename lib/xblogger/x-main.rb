@@ -1,7 +1,6 @@
 module Bblogger
 
   class Xblog
-
     def initialize(h)
       @req = h.keys[0].to_s
       @req == 'get' ? @year_month = h.values[0] : @path = h.values[0]
@@ -32,6 +31,7 @@ module Bblogger
     end
 
     private
+
     def setup
       @t_head, @t_xdoc, @t_body = Xdoc.new(@path).base
       return err_msg(4) if @t_head.nil?
@@ -64,7 +64,6 @@ module Bblogger
     def g_save(rh)
       h = @t_head.merge(rh)
       h[:content] = @t_body
-      # h[:control] = 'posted' if h[:control].nil?
       p h
       SaveText.new(h).base
     end
@@ -80,12 +79,16 @@ module Bblogger
     def g_up
       return nil unless @t_xdoc
       return nil unless gets_msg("Update Entry")
-      rh = Start.new(@t_id).xup(@t_xdoc)
+      Start.new(@t_id).xup(@t_xdoc)
     end
 
     def g_del
-      a = gets_msg("Delete Entry.")
-      return nil unless a
+      # get entry before delete.
+      b = Start.new(@t_id).xdel_before
+      return nil unless b
+      print "\n", "-"*5, "\n"
+      return nil unless gets_msg("Delete Entry.")
+      # delete request
       Start.new(@t_id).xdel
     end
 
@@ -98,11 +101,9 @@ module Bblogger
       exit if ans.empty?
       return true if ans == 'y'
     end
-
   end
 
   class Start
-
     include $BBLOGGER
     def initialize(eid=nil)
       @eid = eid
@@ -124,6 +125,12 @@ module Bblogger
       request_del(u)
     end
 
+    def xdel_before
+      u = @xurl + "/" + @eid
+      print "Entry URL: ", u, "\n"
+      request_get_entry(u)
+    end
+
     def xpost(data)
       str = "Error: path to data directory. LOOK! /path/to/xblogger-config\n"
       return print str unless d = dir_check
@@ -135,7 +142,7 @@ module Bblogger
 
     def xup(data)
       u = @xurl + "/" + @eid
-      rh = request_up(u, data)
+      request_up(u, data)
     end
 
     private
@@ -150,40 +157,64 @@ module Bblogger
     def request_get(u)
       r = clbase.get(u)
       res_to_getreq(r)
-      code_msg(r, 'get')
+      status_code_200(r.status_code, "Get")
+    end
+
+    def request_get_entry(u)
+      begin
+        res = clbase.get(u)
+      rescue GData::Client::UnknownError
+        print "Entry not found\n"
+        return nil
+      end
+      status_code_200(res.status_code, "Get Entry")
+      return nil unless res.status_code == 200
+      h = Hash.new
+      @xr = res.to_xml.root
+      h[:edit_id] = get_editid
+      h[:url] = get_link
+      [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
+      h[:control] = get_xstr('app:control/app:draft')
+      h[:category] = get_category
+      # test
+      p c = get_xstr("content").to_s
+      h[:contentSummary] = c[0..150]
+      print "\n", "-"*5, "\n"
+      print_hash(h)
     end
 
     def request_del(u)
       r = clbase.delete(u)
-      code_msg(r, 'delete')
+      status_code_200(r.status_code, "Delete")
     end
 
     def request_post(data)
       p r = clbase.post(@xurl, data)
-      code_msg(r, 'post')
+      status_code_201(r.status_code, "Post")
+      return res_to_h(r) if r.status_code == 201
     end
 
     def request_up(u, data)
       r = clbase.put(u, data.to_s)
-      code_msg(r, 'update')
+      status_code_200(r.status_code, "Update")
     end
 
-    def code_msg(r, str)
-      n = r.status_code
+    def status_code_201(n, str)
+      # Post
       print "StatusCode: #{n}\n"
-      if str == 'post'
-        return nil unless n == 201
-        success_msg(str)
-        return res_to_h(r)
-      else
-        return nil unless n == 200
-        success_msg(str)
-        res_to_h(r) if str == 'update'
-      end
+      return success_msg(str) if n == 201
+      print "Error: Request #{str}"
+    end
+
+    def status_code_200(n, str)
+      # Get, Delete, Update
+      print "StatusCode: #{n}\n"
+      return success_msg(str) if n == 200
+      print "Error: Request #{str}"
     end
 
     def success_msg(str)
-      print "Success: request #{str}.\n\n"
+      print "Success: Request #{str}.\n\n"
     end
 
     def clbase
@@ -297,11 +328,9 @@ module Bblogger
       return print "Error: Time parse error. example: 2010-01.\n"
       end
     end
-
   end
 
   class Xdoc
-
     def initialize(path)
       return nil unless File.exist?(path)
       ary = IO.readlines(path)
@@ -321,6 +350,7 @@ module Bblogger
     end
 
     private
+
     def to_xml(h, arr)
       Mbxml.new().to_xml(h, arr)
     end
@@ -348,11 +378,9 @@ module Bblogger
     def need_key
       {:edit_id=>nil, :published=>nil, :updated=>nil, :date=>nil, :control=>nil, :category=>nil, :title=>nil}
     end
-
   end
 
   class SaveText
-
     def initialize(h)
       return nil unless h[:dir]
       @h = h
@@ -390,7 +418,6 @@ module Bblogger
       f = Time.parse(@pubd).strftime("%Y-%m-%dT%H-%M-%S") + "-" + @h[:edit_id] + ".txt"
       File.join(subd, f)
     end
-
   end
 
   # end of module
