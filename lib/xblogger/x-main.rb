@@ -9,7 +9,6 @@ module Bblogger
     def base
       setup unless @req =~ /get|del/
       #begin
-        # --- request run
         case @req
         when 'get' then g_get
         when 'doc' then g_doc
@@ -25,7 +24,6 @@ module Bblogger
           return err_msg(3) unless @t_id
           g_del
         end
-        # ---
       #rescue# => err
       #end
     end
@@ -64,7 +62,6 @@ module Bblogger
     def g_save(rh)
       h = @t_head.merge(rh)
       h[:content] = @t_body
-      p h
       SaveText.new(h).base
     end
 
@@ -112,40 +109,68 @@ module Bblogger
       # http://code.blogger.com/2011/06/clarifying-recent-changes-to-bloggers.html
       # @xurl: http => https
       @xurl = "https://www.blogger.com/feeds/#{xid}/posts/default"
+      @entryurl = @xurl + "/" + @eid if @eid
     end
 
     def xget(x)
       return nil unless u = range_t(x)
-      request_get(u)
-    end
-
-    def xdel
-      u = @xurl + "/" + @eid
-      print "Entry URL: ", u, "\n"
-      request_del(u)
-    end
-
-    def xdel_before
-      u = @xurl + "/" + @eid
-      print "Entry URL: ", u, "\n"
-      request_get_entry(u)
+      # u = u + "?category=Blogger"
+      r = clbase.get(u)
+      view_res_list(r)
+      status_code_200(r.status_code, "Get")
     end
 
     def xpost(data)
       str = "Error: path to data directory. LOOK! /path/to/xblogger-config\n"
       return print str unless d = dir_check
-      rh = request_post(data)
-      return nil unless rh
+      p r = clbase.post(@xurl, data)
+      status_code_201(r.status_code, "Post")
+      return nil unless r.status_code == 201
+      # save data as hash
+      rh = res_to_h(r)
       rh[:dir] = d
       return rh
     end
 
     def xup(data)
-      u = @xurl + "/" + @eid
-      request_up(u, data)
+      return nil unless @entryurl
+      r = clbase.put(@entryurl, data.to_s)
+      status_code_200(r.status_code, "Update")
+    end
+
+    def xdel_before
+      return nil unless @entryurl
+      print_entryurl
+      request_get_entry
+    end
+
+    def xdel
+      return nil unless @entryurl
+      print_entryurl
+      r = clbase.delete(@entryurl)
+      status_code_200(r.status_code, "Delete")
+    end
+
+    def print_entryurl
+      print "Entry URL: ", @entryurl, "\n"
     end
 
     private
+
+    def res_to_h(res)
+      # result xml of Post request to Hash
+      return nil unless res.to_xml.root.name == "entry"
+      print "# -- Response --\n"
+      h = Hash.new
+      @xr = res.to_xml.root
+      h[:edit_id] = get_editid
+      [:published, :updated].each{|s| h[s] = get_xstr(s.to_s)}
+      h[:url] = get_link if get_link
+      ## When post the public entry, :control of response is nil.
+      ## don't use h[:control]
+      print_hash(h)
+      return h unless h.empty?
+    end
 
     def dir_check
       d = data_dir
@@ -154,49 +179,23 @@ module Bblogger
       return d
     end
 
-    def request_get(u)
-      r = clbase.get(u)
-      res_to_getreq(r)
-      status_code_200(r.status_code, "Get")
-    end
-
-    def request_get_entry(u)
+    def request_get_entry
       begin
-        res = clbase.get(u)
+        res = clbase.get(@entryurl)
       rescue GData::Client::UnknownError
         print "Entry not found\n"
         return nil
       end
       status_code_200(res.status_code, "Get Entry")
       return nil unless res.status_code == 200
-      h = Hash.new
-      @xr = res.to_xml.root
-      h[:edit_id] = get_editid
-      h[:url] = get_link
-      [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
-      h[:control] = get_xstr('app:control/app:draft')
-      h[:category] = get_category
-      # test
-      p c = get_xstr("content").to_s
-      h[:contentSummary] = c[0..150]
-      print "\n", "-"*5, "\n"
-      print_hash(h)
+      view_get_entry(res)
     end
 
-    def request_del(u)
-      r = clbase.delete(u)
-      status_code_200(r.status_code, "Delete")
-    end
-
-    def request_post(data)
-      p r = clbase.post(@xurl, data)
-      status_code_201(r.status_code, "Post")
-      return res_to_h(r) if r.status_code == 201
-    end
-
-    def request_up(u, data)
-      r = clbase.put(u, data.to_s)
-      status_code_200(r.status_code, "Update")
+    def view_get_entry(res)
+      print "# This Entry.\n"
+      h, @xr = Hash.new, res.to_xml.root
+      h[:contentSummary] = get_xstr("content").to_s[0..150]
+      view_res_entry(h)
     end
 
     def status_code_201(n, str)
@@ -236,40 +235,24 @@ module Bblogger
       end
     end
 
-    def res_to_getreq(r)
+    def view_res_list(r)
       print "# Response Get Request\n"
       r.to_xml.elements.each('entry'){|x|
         h, @xr = {}, x
-        #--------------------------
-        h[:edit_id] = get_editid
-        h[:url] = get_link
-        [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
-        h[:control] = get_xstr('app:control/app:draft')
-        h[:category] = get_category
-        #--------------------------
-        print "# ", "-"*5, "\n"
-        print_hash(h)
+        view_res_entry(h)
       }
       print "--\n"
     end
 
-    def res_to_h(res)
-      return nil unless res.to_xml.root.name == "entry"
-      print "# -- Response --\n"
-      h = Hash.new
-      @xr = res.to_xml.root
-      res_sub(h)
-      print_hash(h)
-      return h unless h.empty?
-    end
-
-    def res_sub(h)
+    def view_res_entry(h)
       h[:edit_id] = get_editid
-      [:published, :updated].each{|s| h[s] = get_xstr(s.to_s)}
-      h[:url] = get_link if get_link
-      ## When post the public entry, :control of response is nil.
-      ## dont use h[:control]
-      ## h[:control] = get_xstr('app:control/app:draft')
+      h[:url] = get_link
+      [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
+      h[:control] = get_xstr('app:control/app:draft')
+      h[:category] = get_category
+      h[:contentSummary] = get_xstr("content").to_s[0..200]
+      print "# ", "-"*5, "\n"
+      print_hash(h)
     end
 
     def print_hash(h)
