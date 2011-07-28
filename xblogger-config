@@ -6,14 +6,6 @@ module Bblogger
      '/path/to/your/data-directory/'
     end
 
-    #--------
-    # Get the your BlogID.
-    # $ cd xblogger/bin
-    # $ ruby get-blogid.rb
-    # =>
-    # your blog title, url.
-    # your BlogID
-    #--------
     def xid
       'your BlogID'
     end
