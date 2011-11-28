@@ -21,7 +21,7 @@ module Bblogger
     end
 
     def getentry
-      url = @feedurl + "/" + @t_id
+      url = "#{@posturl}/" +  @t_id
       print "# GetEntry Request\n#{url}\n"
       res = @obj.get(url)
       print_status_code(res, 200)
