@@ -39,7 +39,6 @@ module Bblogger
       rescue
         return nil
       end
-      return nil if d > Time.now
       @xentry.add_element("published").add_text(d.iso8601.to_s)
     end
 
@@ -59,7 +58,7 @@ module Bblogger
     end
 
     def set_key
-      a = ["pre", "blockquote"]
+      a = ["more", "pre", "blockquote"]
       @on, @off  = Hash.new, Hash.new
       a.each{|x| @on["<#{x}>"] = "#{x}"; @off["</#{x}>"] = true}
       @line_p, @line_x, @tag = [], "", nil
@@ -90,10 +89,16 @@ module Bblogger
       }
     end
 
+    #2011-11-23
+    def tag_more
+      REXML::Comment.new("more", @div)
+    end
+
     def tag_x
       case @tag
       when "pre" then tag_pre
       when "blockquote" then tag_block
+      when "more" then tag_more
       end
     end
 
@@ -145,7 +150,9 @@ module Bblogger
       all = /<a\shref=["'](.*?)["']>(.*?)<\/a>/.match(line)
       http = /http.?:\/\//.match(all[1]) if all
       (print "MISSED LINK TAG...#{line}\n"; raise) if (all[2].nil? or http.nil?)
-      u = URI.escape(all[1])
+      # 2001-11-29
+      # u = URI.escape(all[1])
+      u = ERB::Util.url_encode(all[1])
       a = @ep.add_element("a")
       a.add_attribute("href", u)
       a.add_text(all[2])
@@ -178,7 +185,7 @@ module Bblogger
 
     def base(res, str)
       #p res.to_xml.root
-      puts "#-------------------------------------------------------hi"
+      puts "# \n-------------------------------------- \n\n"
       @res, @str = res, str
       @xr = @res.to_xml.root
       result_view
@@ -220,6 +227,8 @@ module Bblogger
       [:published, :updated, :title].each{|s| h[s] = get_xstr(s.to_s)}
       h[:category] = get_category
       h[:summary] = get_xstr("summary")
+      #### 2011-10-02
+      h[:content] = get_xstr("content")
       print_hash(h)
     end
 
@@ -308,4 +317,5 @@ module Bblogger
   end
   # end of moudle
 end
+
 
