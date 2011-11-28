@@ -152,7 +152,9 @@ module Bblogger
       (print "MISSED LINK TAG...#{line}\n"; raise) if (all[2].nil? or http.nil?)
       # 2001-11-29
       # u = URI.escape(all[1])
-      u = ERB::Util.url_encode(all[1])
+      # u = ERB::Util.url_encode(all[1])
+      # pending
+      u = all[1]
       a = @ep.add_element("a")
       a.add_attribute("href", u)
       a.add_text(all[2])
