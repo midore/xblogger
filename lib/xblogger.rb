@@ -1,4 +1,4 @@
-require 'erb'
+# require 'erb'
 # require 'uri'
 require 'time'
 require 'rexml/document'
